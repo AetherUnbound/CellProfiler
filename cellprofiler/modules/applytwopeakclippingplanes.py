@@ -62,6 +62,12 @@ class ApplyTwoPeakClippingPlanes(cellprofiler.module.ObjectProcessing):
             doc="Additional slices to keep beyond intensity peak"
         )
 
+        self.accept_single = cellprofiler.setting.Binary(
+            text="Accept single peak as bottom clipping",
+            value=False,
+            doc="If only a single peak is found, accept this as the bottom cut-off"
+        )
+
     def settings(self):
         __settings__ = super(ApplyTwoPeakClippingPlanes, self).settings()
 
@@ -101,10 +107,14 @@ class ApplyTwoPeakClippingPlanes(cellprofiler.module.ObjectProcessing):
         z_median = np.median(reference_data, axis=[1, 2])
         # `argrelmax` always returns a tuple, but z_median is one dimensional
         local_maxima = scipy.signal.argrelmax(z_median)[0]
+        num_maxima = len(local_maxima)
 
-        if len(local_maxima) != 2:
-            log.warn("Unable to find only two maxima (found {}) - bypassing clipping operation".format(
-                len(local_maxima)))
+        if num_maxima == 1 and self.accept_single:
+            # Single peak accepted as bottom clipping plane
+            # Don't clip off anything from the top
+            local_maxima = [local_maxima[0], -1]
+        if num_maxima != 2:
+            log.warn("Unable to find only two maxima (found {}) - bypassing clipping operation".format(num_maxima))
             local_maxima = [0, -1]
 
         # Apply padding based on user preference
@@ -119,7 +129,7 @@ class ApplyTwoPeakClippingPlanes(cellprofiler.module.ObjectProcessing):
         objects = cellprofiler.object.Objects()
 
         objects.segmented = y_data
-        objects.parent_image = x
+        objects.parent_image = x.parent_image
 
         workspace.object_set.add_objects(objects, y_name)
 
