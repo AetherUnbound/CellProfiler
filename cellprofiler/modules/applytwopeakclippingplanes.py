@@ -102,11 +102,13 @@ class ApplyTwoPeakClippingPlanes(cellprofiler.module.ObjectProcessing):
         # `argrelmax` always returns a tuple, but z_median is one dimensional
         local_maxima = scipy.signal.argrelmax(z_median)[0]
 
-        if len(local_maxima) > 2:
-            log.warn("More than two local maxima found - bypassing clipping operation")
+        if len(local_maxima) != 2:
+            log.warn("Unable to find only two maxima (found {}) - bypassing clipping operation".format(
+                len(local_maxima)))
             local_maxima = [0, -1]
 
         # Apply padding based on user preference
+        # Ensure the clipping plane isn't beyond the array's index
         bottom_slice = max(local_maxima[0] - self.bottom_padding.value, 0)
         top_slice = min(local_maxima[1] - self.top_padding.value, len(z_median) - 1)
 
