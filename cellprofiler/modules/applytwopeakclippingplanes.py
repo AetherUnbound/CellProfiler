@@ -74,7 +74,8 @@ class ApplyTwoPeakClippingPlanes(cellprofiler.module.ObjectProcessing):
         return __settings__ + [
             self.reference_name,
             self.top_padding,
-            self.bottom_padding
+            self.bottom_padding,
+            self.accept_single
         ]
 
     def visible_settings(self):
@@ -83,7 +84,8 @@ class ApplyTwoPeakClippingPlanes(cellprofiler.module.ObjectProcessing):
         return __settings__ + [
             self.reference_name,
             self.top_padding,
-            self.bottom_padding
+            self.bottom_padding,
+            self.accept_single
         ]
 
     def run(self, workspace):
@@ -113,7 +115,7 @@ class ApplyTwoPeakClippingPlanes(cellprofiler.module.ObjectProcessing):
             # Single peak accepted as bottom clipping plane
             # Don't clip off anything from the top
             local_maxima = [local_maxima[0], -1]
-        if num_maxima != 2:
+        elif num_maxima != 2:
             log.warn("Unable to find only two maxima (found {}) - bypassing clipping operation".format(num_maxima))
             local_maxima = [0, -1]
 
