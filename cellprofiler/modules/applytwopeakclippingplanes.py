@@ -4,14 +4,14 @@
 ApplyTwoPeakClippingPlanes
 ==========================
 
-**ApplyTwoPeakClippingPlanes** merges objects below a certain threshold into its most prevalent, adjacent neighbor.
+**ApplyTwoPeakClippingPlanes** removes all objects above and below the upper and lower intensity peaks. 
 
 The output of this module is a object image of the same data type as the input.
 **ApplyTwoPeakClippingPlanes** can be run *after* any labeling or segmentation module (e.g.,
-**ConvertImageToObjects** or **Watershed**). Labels are preserved and, where possible, small
-objects are merged into neighboring objects that constitute a majority of the small object's
-border. This is useful for reversing over-segmentation and artifacts that result from seeding
-modules.
+**ConvertImageToObjects** or **Watershed**). The module will attempt to find two intensity peaks by 
+taking the median intensity of each z-slice. These peaks will be used as clipping planes, i.e. all
+object data will be removed from the planes above and below these slices. This is useful for removing 
+portions of objects that have grown into noise regions above or below a cell body. Labels are preserved. 
 
 |
 
