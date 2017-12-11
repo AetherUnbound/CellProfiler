@@ -942,10 +942,13 @@ class CPFrame(wx.Frame):
     @staticmethod
     def __on_new_cp(event):
         import os
-        if not hasattr(sys, 'frozen'):
-            os.system('open CellProfiler_python.command')
+        if sys.platform in ['linux', 'linux2']:
+            os.system('cellprofiler')
         else:
-            os.system('open -na CellProfiler.app')
+            if not hasattr(sys, 'frozen'):
+                os.system('open CellProfiler_python.command')
+            else:
+                os.system('open -na CellProfiler.app')
 
     def __on_help_path_list(self, event):
         import cellprofiler.gui.htmldialog
