@@ -524,6 +524,15 @@ class Figure(wx.Frame):
             return
         available_width, available_height = self.GetClientSize()
         nbheight = self.navtoolbar.GetSize()[1]
+
+        # On some operating systems (specifically Ubuntu), the matplotlib toolbar
+        # may not render with an appropriate height. This is the result of creating
+        # the navtoolbar without an appropriate slider. Until this is refactored
+        # to make it size properly, this check ensures the navtoolbar at least appears.
+        # https://github.com/CellProfiler/CellProfiler/issues/2679
+        if nbheight < 40:
+            nbheight = 40
+
         self.navtoolbar.SetPosition((0, 0))
         self.navtoolbar.SetSize((available_width, nbheight))
 
@@ -1493,6 +1502,17 @@ class Figure(wx.Frame):
         if rgb_mask is None:
             rgb_mask = [1, 1, 1]
 
+        # Truncate multichannel data that is not RGB (4+ channel data) and display it as RGB.
+        if image.shape[2] > 3:
+            logger.warn(
+                "Multichannel display is only supported for RGB (3-channel) data."
+                " Input image has {:d} channels. The first 3 channels are displayed as RGB.".format(
+                    image.shape[2]
+                )
+            )
+
+            return self.subplot_imshow(x, y, image[:, :, :3], title, normalize=normalize, rgb_mask=rgb_mask, **kwargs)
+
         return self.subplot_imshow(x, y, image, title, normalize=normalize, rgb_mask=rgb_mask, **kwargs)
 
     @allow_sharexy
@@ -1660,6 +1680,12 @@ class Figure(wx.Frame):
     @staticmethod
     def normalize_image(image, **kwargs):
         """Produce a color image normalized according to user spec"""
+        if 0 in image.shape:
+            # No normalization to perform for images with an empty dimension.
+            # Return the image.
+            # https://github.com/CellProfiler/CellProfiler/issues/3330
+            return image
+
         colormap = kwargs['colormap']
         normalize = kwargs['normalize']
         vmin = kwargs['vmin']
@@ -2028,7 +2054,7 @@ class Figure(wx.Frame):
             self.plate_choice.plate_type = plate_type
             self.plate_choice.x = x
             self.plate_choice.y = y
-            self.plate_choice.cmap = cmap
+            self.plate_choice.cmap = matplotlib.cm.get_cmap(cmap)
             self.plate_choice.axis_title = title
             self.plate_choice.colorbar = colorbar
         else:
